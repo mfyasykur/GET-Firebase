@@ -1,12 +1,16 @@
 package com.ppb.getfirebase
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.FirebaseApp
 import com.google.firebase.database.*
+import com.ppb.getfirebase.fitur.EditActivity
+import com.ppb.getfirebase.fitur.InsertActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,13 +23,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val insertButton: Button = findViewById(R.id.btn_insert_main)
+        insertButton.setOnClickListener {
+            insertMahasiswa()
+        }
+
         FirebaseApp.initializeApp(this)
 
         userRecyclerView = findViewById(R.id.rv_main)
         userRecyclerView.layoutManager = LinearLayoutManager(this)
 
         userList = ArrayList()
-        adapter = MahasiswaAdapter(userList)
+        adapter = MahasiswaAdapter(userList, this, ::editMahasiswa, ::deleteMahasiswa)
         userRecyclerView.adapter = adapter
 
         database = FirebaseDatabase.getInstance().getReference("mahasiswa")
@@ -35,9 +44,14 @@ class MainActivity : AppCompatActivity() {
                 userList.clear()
 
                 for (snapshot in dataSnapshot.children) {
+                    val nim = snapshot.child("nim").getValue(String::class.java)
                     val mahasiswa = snapshot.getValue(Mahasiswa::class.java)
                     mahasiswa?.let {
-                        userList.add(it)
+                        it.nim = nim
+                        it.nim?.let {
+                            nim -> it.nim = nim
+                            userList.add(it)
+                        }
                     }
                 }
 
@@ -48,5 +62,29 @@ class MainActivity : AppCompatActivity() {
                 Log.e("DatabaseError", "Database operation cancelled: ${error.message}")
             }
         })
+    }
+
+    private fun editMahasiswa(mahasiswa: Mahasiswa) {
+
+        val intent = Intent(this, EditActivity::class.java)
+        intent.putExtra("nama", mahasiswa.nama)
+        intent.putExtra("nim", mahasiswa.nim)
+        intent.putExtra("telp", mahasiswa.telepon)
+
+        startActivity(intent)
+    }
+
+    private fun deleteMahasiswa(mahasiswa: Mahasiswa) {
+
+        val userId = mahasiswa.nim
+        userId?.let {
+            database.child(it).removeValue()
+        }
+    }
+
+    private fun insertMahasiswa() {
+
+        val intent = Intent(this, InsertActivity::class.java)
+        startActivity(intent)
     }
 }

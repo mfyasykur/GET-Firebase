@@ -20,6 +20,12 @@ abase.DatabaseRegistrar"
             android:value="com.google.firebase.components.ComponentRegistrar" />
 
         <activity
+            android:name=".fitur.InsertActivity"
+            android:exported="false" />
+        <activity
+            android:name=".fitur.EditActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
